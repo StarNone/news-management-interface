@@ -1,8 +1,11 @@
 <template>
-  <textarea :id="id" :value="value"></textarea>
+  <div>
+          <textarea :id="id" :value="value"></textarea>
+  </div>
 </template>
 
 <script>
+import axios from 'axios'
 import tinymce from 'tinymce/tinymce'
 import 'tinymce/themes/silver/theme'
 import 'tinymce/skins/ui/oxide/skin.css'
@@ -48,7 +51,6 @@ export default {
   },
   watch: {
     value: function (val) {
-      console.log('init' + val)
       if (this.status === INIT || tinymce.activeEditor.getContent() !== val) {
         tinymce.activeEditor.setContent(val)
       }
@@ -57,15 +59,19 @@ export default {
   },
   data () {
     return {
+      token: '',
       status: INIT,
       id: 'editor-' + new Date().getMilliseconds()
     }
   },
   mounted () {
     const _this = this
+    this.$axios.get(this.$api.getUploadToken).then(res => {
+      _this.token = res.token
+    })
     const setting = {
       selector: '#' + _this.id,
-      upload_image_url: '/upload/cloud',
+      // upload_image_url: '/upload/cloud',
       language: 'zh_CN',
       language_url: '../../../static/js/zh_CN.js',
       emoticons_database_url: '../../../static/js/emojis.js',
@@ -110,40 +116,31 @@ export default {
       'toolbar1': this.toolbar1,
       // 图片上传
       images_upload_handler: function (blobInfo, success, failure) {
-        // failure(blobInfo)
-        // _this.$emit('on-ready', blobInfo.blob().size, blobInfo.blob())
-        if (blobInfo.blob().size > _this.maxSize) {
+        if (blobInfo.blob().size > self.maxSize) {
           failure('文件体积过大')
         }
-        if (_this.accept.indexOf(blobInfo.blob().type) >= 0) {
+        if (self.accept.indexOf(blobInfo.blob().type) >= 0) {
           uploadPic()
         } else {
           failure('图片格式错误')
         }
-        function uploadPic () { // 发送请求
-          const xhr = new XMLHttpRequest()
-          const formData = new FormData()
-          xhr.withCredentials = _this.withCredentials
-          xhr.open('POST', _this.url)
-          xhr.onload = function () {
-            failure('上传---' + xhr.status)
-            if (xhr.status !== 200) {
-              // 抛出 'on-upload-fail' 钩子
-              _this.$emit('on-upload-fail')
-              failure('上传失败: ' + xhr.status)
-              return
-            }
-            const json = JSON.parse(xhr.responseText)
-            // 抛出 'on-upload-success' 钩子
-            _this.$emit('on-upload-success', [
-              json, success, failure
-            ])
-          }
-          xhr.onerror = function () {
-            _this.$emit('on-ready', '上传失败')
-          }
-          formData.append('file', blobInfo.blob())
-          xhr.send(formData)
+        function uploadPic () {
+          let formData = new FormData()
+          // 服务端接收文件的参数名，文件数据，文件名
+          formData.append('upfile', blobInfo.blob(), blobInfo.filename())
+          formData.append('token', _this.token)
+          axios.post(
+            // 这里是你的上传地址
+            'https://upload-z1.qiniup.com',
+            formData
+          )
+            .then((res) => {
+              // 这里返回的是你图片的地址
+              success(res.data.url)
+            })
+            .catch(() => {
+              failure('上传失败')
+            })
         }
       }
     }

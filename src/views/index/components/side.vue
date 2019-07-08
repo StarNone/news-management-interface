@@ -35,8 +35,8 @@
           <span>分类管理</span>
         </template>
         <el-menu-item-group>
-          <el-menu-item index="3-1" @click="handleTransfer('分类管理','添加')"><i class="el-icon-plus icon"></i>添加分类</el-menu-item>
-          <el-menu-item index="3-2" @click="handleTransfer('分类管理','删除')"><i class="el-icon-minus icon"></i>删除分类</el-menu-item>
+          <el-menu-item index="/categoryadd" @click="handleTransfer('分类管理','添加')"><i class="el-icon-plus icon"></i>添加分类</el-menu-item>
+          <el-menu-item index="/categorydelete" @click="handleTransfer('分类管理','删除')"><i class="el-icon-minus icon"></i>删除分类</el-menu-item>
         </el-menu-item-group>
       </el-submenu>
       <el-submenu index="4">
@@ -45,7 +45,7 @@
           <span>用户管理</span>
         </template>
         <el-menu-item-group>
-          <el-menu-item index="4-1" @click="handleTransfer('用户管理','用户信息')"><i class="el-icon-user icon"></i>用户信息</el-menu-item>
+          <el-menu-item index="/user" @click="handleTransfer('用户管理','用户信息')"><i class="el-icon-user icon"></i>用户信息</el-menu-item>
         </el-menu-item-group>
       </el-submenu>
     </el-menu>

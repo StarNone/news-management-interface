@@ -1,30 +1,42 @@
 <template>
   <div class="container">
-    <h1 class="top-title">待审核新闻</h1>
+    <h1 class="top-title">用户管理</h1>
     <div class="msg">
       <el-table
         :data="message"
         stripe
         style="width: 100%">
         <el-table-column
-          prop="title"
-          label="新闻标题"
+          label="头像"
+          min-width="120">
+          <template slot-scope="scope">
+            <div>
+              <img class="avatar" :src="scope.row.avatar" alt="">
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="nikename"
+          label="昵称"
           min-width="120">
         </el-table-column>
         <el-table-column
-          prop="author.nikename"
-          label="作者"
+          label="限制截止日期"
+          prop="limitTime"
           min-width="120">
-        </el-table-column>
-        <el-table-column
-          prop="createTime"
-          label="发布时间"
-          min-width="120">
-        </el-table-column>
-        <el-table-column
-          prop="status"
-          label="审核状态"
-          min-width="120">
+          <template slot-scope="scope">
+            <div>
+              <el-date-picker
+                v-model="scope.row.limitTime"
+                type="date"
+                v-if="scope.row.limitTime !== '永久禁用'"
+                placeholder="选择日期"></el-date-picker>
+              <el-button v-if="scope.row.limitTime === '永久禁用'"
+                type="text"
+                disabled
+                size="large">{{scope.row.limitTime}}</el-button>
+            </div>
+          </template>
         </el-table-column>
         <el-table-column
           fixed="right"
@@ -32,9 +44,9 @@
           min-width="164">
           <template slot-scope="scope">
             <div class="btns">
-              <el-button type="info" @click="handleLook(scope.row._id)" size="small">查看详情</el-button>
-              <el-button type="primary" @click="handleAudit(scope.row._id)" size="small">通过</el-button>
-              <el-button type="danger" @click="handleFailed(scope.row._id)" size="small">未通过</el-button>
+              <el-button type="info" size="small" @click="handleLook(scope.row._id)">查看评论</el-button>
+              <el-button type="danger" size="small" @click="handleLimit(scope.row._id, scope.row.limitTime)">限制</el-button>
+              <el-button type="danger" size="small" @click="handleLimit(scope.row._id, '永久禁用')">永久封禁</el-button>
             </div>
           </template>
         </el-table-column>
@@ -54,7 +66,6 @@
 </template>
 
 <script>
-import moment from 'moment'
 export default {
   name: 'chartdelete',
   data () {
@@ -82,66 +93,38 @@ export default {
       this.currentPage = val
       this.message = this.tableData.slice((this.currentPage - 1) * this.pagesize, this.currentPage * this.pagesize)
     },
-    getNews () {
+    getUserData () {
       const _this = this
-      this.$axios.get(this.$api.getNews, {
-        params: {
-          status: 0
-        }
-      }).then(res => {
-        res.data.map(item => {
-          item.createTime = moment(item.createTime).format('YYYY年M月D日')
-          switch (item.status) {
-            case 1:
-              item.status = '审核通过'
-              break
-            case 2:
-              item.status = '审核未通过'
-              break
-            default:
-              item.status = '待审核'
-              break
-          }
-        })
+      this.$axios.get(this.$api.getAllUser).then(res => {
+        console.log(res)
         _this.tableData = res.data
         _this.initMessage()
         _this.inittotalpage()
       })
     },
-    handleLook (id) {
+    handleLimit (id, limit) {
       console.log(id)
+      console.log(limit)
+      this.$axios.put(this.$api.manageUser, {
+        id,
+        limitTime: limit
+      }).then(res => {
+        if (res.code === 200) {
+          this.$alert(res.msg, '信息提示')
+        }
+      })
+    },
+    handleLook (id) {
       this.$router.push({
-        name: 'detail',
+        name: 'comment',
         params: {
           id: id
-        }
-      })
-    },
-    handleAudit (id) {
-      this.$axios.put(this.$api.changeNews, {
-        newsId: id,
-        status: 1
-      }).then(res => {
-        if (res.code === 200) {
-          this.$alert(res.msg, '信息提示')
-          this.getNews()
-        }
-      })
-    },
-    handleFailed (id) {
-      this.$axios.put(this.$api.changeNews, {
-        newsId: id,
-        status: 2
-      }).then(res => {
-        if (res.code === 200) {
-          this.$alert(res.msg, '信息提示')
-          this.getNews()
         }
       })
     }
   },
   mounted () {
-    this.getNews()
+    this.getUserData()
   }
 }
 </script>
@@ -157,5 +140,11 @@ export default {
   position: absolute;
   top: 600px;
   right: 20px;
+}
+.avatar {
+  height: 50px;
+  width: 50px;
+  border-radius: 25px;
+  margin: 0 auto;
 }
 </style>

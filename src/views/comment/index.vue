@@ -1,29 +1,27 @@
 <template>
   <div class="container">
-    <h1 class="top-title">全部新闻</h1>
+    <h1 class="top-title">评论内容</h1>
+    <div class="back">
+      <el-button icon="el-icon-arrow-left" @click="$router.back()">返回</el-button>
+    </div>
     <div class="msg">
       <el-table
         :data="message"
         stripe
         style="width: 100%">
         <el-table-column
-          prop="title"
-          label="新闻标题"
-          min-width="120">
+          prop="content"
+          label="发布内容"
+          min-width="150">
+          <template slot-scope="scope">
+            <div class="content">
+              <div v-html="scope.row.content"></div>
+            </div>
+          </template>
         </el-table-column>
         <el-table-column
-          prop="author.nikename"
+          prop="user.nikename"
           label="作者"
-          min-width="120">
-        </el-table-column>
-        <el-table-column
-          prop="createTime"
-          label="发布时间"
-          min-width="120">
-        </el-table-column>
-        <el-table-column
-          prop="status"
-          label="审核状态"
           min-width="120">
         </el-table-column>
         <el-table-column
@@ -32,7 +30,7 @@
           min-width="164">
           <template slot-scope="scope">
             <div class="btns">
-              <el-button type="info" @click="handleLook(scope.row._id)" size="small">查看详情</el-button>
+              <el-button type="danger" size="small" @click="handleDelete(scope.row._id)">删除</el-button>
             </div>
           </template>
         </el-table-column>
@@ -52,9 +50,8 @@
 </template>
 
 <script>
-import moment from 'moment'
 export default {
-  name: 'chartdelete',
+  name: 'comment',
   data () {
     return {
       tableData: [],
@@ -80,44 +77,28 @@ export default {
       this.currentPage = val
       this.message = this.tableData.slice((this.currentPage - 1) * this.pagesize, this.currentPage * this.pagesize)
     },
-    getNews () {
+    getComment () {
       const _this = this
-      this.$axios.get(this.$api.getNews, {
-        params: {
-          status: 3
-        }
-      }).then(res => {
-        res.data.map(item => {
-          item.createTime = moment(item.createTime).format('YYYY年M月D日')
-          switch (item.status) {
-            case 1:
-              item.status = '审核通过'
-              break
-            case 2:
-              item.status = '审核未通过'
-              break
-            default:
-              item.status = '待审核'
-              break
-          }
-        })
+      this.$axios.get(this.$api.getCommentByUser + this.$route.params.id).then(res => {
         _this.tableData = res.data
         _this.initMessage()
         _this.inittotalpage()
       })
     },
-    handleLook (id) {
-      console.log(id)
-      this.$router.push({
-        name: 'detail',
-        params: {
-          id: id
+    handleDelete (id) {
+      const _this = this
+      this.$axios.delete(this.$api.deleteComment + id).then(res => {
+        console.log(res)
+        if (res.code === 200) {
+          _this.$alert(res.msg, '信息提示')
+          _this.getComment()
         }
+        _this.$alert(res.msg, '信息提示')
       })
     }
   },
   mounted () {
-    this.getNews()
+    this.getComment()
   }
 }
 </script>
@@ -125,6 +106,9 @@ export default {
 <style scoped>
 .top-title {
   color: #888;
+}
+.back {
+  margin-top: 4px;
 }
 .btns {
   text-align: center;

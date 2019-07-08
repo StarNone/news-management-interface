@@ -3,23 +3,20 @@
     <h1 class="top-title">轮播图添加</h1>
     <div class="image">
       <span>轮播图图片：</span>
-      <el-upload
+      <hz-upload
         class="avatar-uploader"
-        action="https://jsonplaceholder.typicode.com/posts/"
-        :show-file-list="false"
-        :on-success="handleAvatarSuccess"
-        :before-upload="beforeAvatarUpload">
+        @success="changeImageUrl">
         <img v-if="imageUrl" :src="imageUrl" class="avatar">
-        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-      </el-upload>
+        <i v-else class="el-icon-plus icon"></i>
+      </hz-upload>
     </div>
     <div class="title">
       <span>标题：</span>
-      <el-input></el-input>
+      <el-input v-model="title"></el-input>
     </div>
     <div class="author">
       <span>作者：</span>
-      <el-input></el-input>
+      <el-input v-model="author"></el-input>
     </div>
     <div class="content">
       <span>内容：</span>
@@ -37,20 +34,24 @@
         @on-upload-fail="onEditorReady"
         @on-upload-success="onEditorUploadComplete" />
     </div>
-    <el-button class="btn" type="primary">发送</el-button>
+    <el-button class="btn" type="primary" @click="handleSend">发送</el-button>
   </div>
 </template>
 
 <script>
 import editor from '@/components/editor'
+import hzUpload from '@/components/hzupload'
 export default {
   name: 'chartadd',
   components: {
-    editor
+    editor,
+    hzUpload
   },
   data () {
     return {
       imageUrl: '',
+      title: '',
+      author: '',
       editorSetting: {
         height: 600
       },
@@ -59,13 +60,14 @@ export default {
       Accept: 'image/jpeg, image/png', // 文件格式
       withCredentials: true,
       menuboolen: true,
-      toolbar: 'fontselect bold italic underline strikethrough | link unlink | image',
+      toolbar: 'fontselect bold italic underline strikethrough | link unlink',
       content: '' // 富文本编辑器双向绑定的内容
     }
   },
   methods: {
-    handleAvatarSuccess (res, file) {
-      this.imageUrl = URL.createObjectURL(file.raw)
+    changeImageUrl (url) {
+      url = url.replace('https', 'http')
+      this.imageUrl = url
     },
     beforeAvatarUpload (file) {
     },
@@ -81,6 +83,17 @@ export default {
       console.log('json', json)
       console.log(json[0].data.filePath)
       this.content = this.content + '<img src=' + json[0].data.filePath + '/>'
+    },
+    handleSend () {
+      const _this = this
+      this.$axios.post(this.$api.addSwiper, {
+        img: this.imageUrl,
+        title: this.title,
+        author: this.author,
+        content: this.content
+      }).then(res => {
+        _this.$alert(res.msg, '信息提示')
+      })
     }
   }
 }
@@ -107,6 +120,34 @@ export default {
     float: right;
     margin-top: 10px;
     margin-right: 10px;
+  }
+
+  .image {
+
+    .avatar-uploader {
+      width: 300px;
+      height: 200px;
+      border: 1px dashed #d9d9d9;
+
+      img {
+        width: 100%;
+        height: 100%;
+      }
+
+      .icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 300px;
+        height: 200px;
+        line-height: 200px;
+        text-align: center;
+      }
+    }
+
+    .avatar-uploader:hover {
+      border: 1px dashed #409eff;
+      cursor: pointer;
+    }
   }
 }
 </style>

@@ -34,8 +34,28 @@ export default {
   },
   methods: {
     login () {
-      this.$router.push({
-        name: 'index'
+      const _this = this
+      this.$axios.post(this.$api.Login, {
+        account: this.account,
+        password: this.password
+      }).then(res => {
+        console.log(res)
+        if (res.code === 200) {
+          let token = res.data.token
+          sessionStorage.setItem('token', token)
+          _this.$message({
+            message: '登陆成功',
+            type: 'success',
+            duration: 1000,
+            onClose: () => {
+              this.$router.push({
+                name: 'index'
+              })
+            }
+          })
+        } else {
+          _this.$alert(res.data.msg, '信息提示')
+        }
       })
     }
   }
@@ -83,6 +103,7 @@ export default {
         border: none;
         height: 50px;
         color: #000;
+        padding-left: 40px;
       }
     }
 
@@ -90,7 +111,7 @@ export default {
 
       .icon {
         margin-top: 10px;
-        font-size: 30px;
+        font-size: 26px;
       }
     }
 

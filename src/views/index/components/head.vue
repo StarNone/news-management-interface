@@ -7,14 +7,14 @@
     </el-breadcrumb>
     <h1 class="title">NEWS新闻发布网后台管理系统</h1>
     <div class="right-msg">
-      <img src="" alt="" class="avatar">
-      <el-dropdown class="user-msg">
+      <img :src="adminmsg.avatar" alt="" class="avatar">
+      <el-dropdown class="user-msg" @command="handleCommand">
         <span class="el-dropdown-link username">
-          hhhhh<i class="el-icon-arrow-down el-icon--right"></i>
+          {{adminmsg.username}}<i class="el-icon-arrow-down el-icon--right"></i>
         </span>
         <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item><router-link :to="{name: 'index'}">返回首页</router-link></el-dropdown-item>
-          <el-dropdown-item @click="logout">退出登录</el-dropdown-item>
+          <el-dropdown-item command="index">返回首页</el-dropdown-item>
+          <el-dropdown-item command="logout">退出登录</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
     </div>
@@ -28,6 +28,34 @@ export default {
     return {
     }
   },
+  methods: {
+    getAdminData () {
+      if (sessionStorage.getItem('token')) {
+        this.$store.dispatch('getAdminMsg')
+      }
+    },
+    handleCommand (command) {
+      if (command === 'logout') {
+        sessionStorage.removeItem('token')
+        this.$store.commit('CHANGE_ADMIN_MSG', {})
+        this.$message({
+          message: '注销成功',
+          type: 'success',
+          duration: 1000,
+          onClose: () => {
+            this.$router.push({
+              name: 'login'
+            })
+          }
+        })
+      }
+      if (command === 'index') {
+        this.$router.push({
+          name: 'index'
+        })
+      }
+    }
+  },
   watch: {
     '$route' (val, old) {
       if (val.path === '/index') {
@@ -35,9 +63,15 @@ export default {
       }
     }
   },
+  created () {
+    this.getAdminData()
+  },
   computed: {
     pathmsg () {
       return this.$store.state.pathmsg
+    },
+    adminmsg () {
+      return this.$store.state.adminMsg
     }
   }
 }
@@ -49,6 +83,7 @@ export default {
   padding: 20px;
   height: 20px;
   border-bottom: 1px solid #555;
+  background: #eee;
 
   .left {
     float: left;
@@ -67,8 +102,7 @@ export default {
       float: left;
       height: 40px;
       width: 40px;
-      background: #f00;
-      border-radius: 6px;
+      border-radius: 20px;
     }
 
     .user-msg {

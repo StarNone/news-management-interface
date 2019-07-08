@@ -14,6 +14,14 @@ const router = new Router({
       component: () => import('@/views/login')
     },
     {
+      path: '/register',
+      name: '/register',
+      meta: {
+        title: '注册'
+      },
+      component: () => import('@/views/register')
+    },
+    {
       path: '/index',
       name: 'index',
       redirect: '/homepage',
@@ -77,6 +85,54 @@ const router = new Router({
             title: '未通过'
           },
           component: () => import('@/views/news/failed')
+        },
+        {
+          path: '/details/:id',
+          name: 'details',
+          meta: {
+            title: '详情页'
+          },
+          component: () => import('@/views/details')
+        },
+        {
+          path: '/categoryadd',
+          name: 'categoryadd',
+          meta: {
+            title: '分类添加'
+          },
+          component: () => import('@/views/category/add')
+        },
+        {
+          path: '/categorydelete',
+          name: 'categorydelete',
+          meta: {
+            title: '分类删除'
+          },
+          component: () => import('@/views/category/delete')
+        },
+        {
+          path: '/user',
+          name: 'user',
+          meta: {
+            title: '用户管理'
+          },
+          component: () => import('@/views/user')
+        },
+        {
+          path: '/detail/:id',
+          name: 'detail',
+          meta: {
+            title: '详情页'
+          },
+          component: () => import('@/views/details/detail')
+        },
+        {
+          path: '/comment/:id',
+          name: 'comment',
+          meta: {
+            title: '评论内容'
+          },
+          component: () => import('@/views/comment')
         }
       ]
     }

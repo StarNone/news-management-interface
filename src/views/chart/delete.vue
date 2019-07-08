@@ -7,12 +7,12 @@
         stripe
         style="width: 100%">
         <el-table-column
-          prop="date"
+          prop="title"
           label="标题"
           min-width="150">
         </el-table-column>
         <el-table-column
-          prop="name"
+          prop="author"
           label="作者"
           min-width="120">
         </el-table-column>
@@ -22,8 +22,8 @@
           min-width="164">
           <template slot-scope="scope">
             <div class="btns">
-              <el-button type="primary" @click="handleClick(scope.row)" size="small">查看</el-button>
-              <el-button type="danger" size="small">删除</el-button>
+              <el-button type="primary" @click="handleLook(scope.row._id)" size="small">查看</el-button>
+              <el-button type="danger" size="small" @click="handleDelete(scope.row._id)">删除</el-button>
             </div>
           </template>
         </el-table-column>
@@ -150,11 +150,39 @@ export default {
     handleCurrentChange (val) {
       this.currentPage = val
       this.message = this.tableData.slice((this.currentPage - 1) * this.pagesize, this.currentPage * this.pagesize)
+    },
+    getSwiper () {
+      const _this = this
+      this.$axios.get(this.$api.getSwiper).then(res => {
+        console.log(res)
+        _this.tableData = res.data
+        _this.initMessage()
+        _this.inittotalpage()
+      })
+    },
+    handleLook (id) {
+      console.log(id)
+      this.$router.push({
+        name: 'details',
+        params: {
+          id: id
+        }
+      })
+    },
+    handleDelete (id) {
+      const _this = this
+      this.$axios.delete(this.$api.deleteSwiper + id).then(res => {
+        console.log(res)
+        if (res.code === 200) {
+          _this.$alert(res.msg, '信息提示')
+          _this.getSwiper()
+        }
+        _this.$alert(res.msg, '信息提示')
+      })
     }
   },
   mounted () {
-    this.initMessage()
-    this.inittotalpage()
+    this.getSwiper()
   }
 }
 </script>
